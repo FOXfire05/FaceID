@@ -12,7 +12,7 @@ const studentSchema = new mongoose.Schema({
   },
   faceId: {
     type: String,
-    required: true, // This maps to the FaceId from AWS Rekognition
+    required: true, 
   },
   imageUrl: {
     type: String,

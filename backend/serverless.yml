@@ -1,0 +1,46 @@
+service: attendance-backend
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  memorySize: 512
+  timeout: 30
+  environment:
+    MONGODB_URI: ${env:MONGODB_URI}
+    AWS_S3_REGION: ${env:AWS_S3_REGION}
+    AWS_S3_BUCKET_NAME: ${env:AWS_S3_BUCKET_NAME}
+    REKOGNITION_COLLECTION_ID: ${env:REKOGNITION_COLLECTION_ID}
+    # Do not put AWS_ACCESS_KEY_ID in lambda env vars if you use IAM roles
+    # But since this is a local project, we pass it down for simplicity
+    AWS_ACCESS_KEY_ID: ${env:AWS_ACCESS_KEY_ID}
+    AWS_SECRET_ACCESS_KEY: ${env:AWS_SECRET_ACCESS_KEY}
+
+plugins:
+  - serverless-apigw-binary
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 5000
+    noPrependStageInUrl: true
+  apigwBinary:
+    types:
+      - 'multipart/form-data'
+      - 'image/jpeg'
+      - 'image/png'
+      - '*/*'
+
+functions:
+  api:
+    handler: server.handler
+    events:
+      - http:
+          path: /
+          method: ANY
+          cors: true
+      - http:
+          path: /{proxy+}
+          method: ANY
+          cors: true
