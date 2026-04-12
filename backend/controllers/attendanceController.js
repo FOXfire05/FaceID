@@ -89,7 +89,8 @@ exports.takeAttendance = async (req, res) => {
       const putCommand = new PutObjectCommand(s3Params);
       await s3Client.send(putCommand);
 
-      groupImageUrl = `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
+      const s3Region = process.env.AWS_S3_REGION || process.env.AWS_REGION || 'us-east-1';
+      groupImageUrl = `https://${bucketName}.s3.${s3Region}.amazonaws.com/${s3Key}`;
     }
 
     // 3. Create Attendance Record
