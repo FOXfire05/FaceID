@@ -34,7 +34,7 @@ const TakeAttendance = () => {
     data.append('className', className);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/attendance/take', data);
+      const response = await axios.post('https://ea8bjyxjw8.execute-api.us-east-1.amazonaws.com/dev/api/attendance/take', data);
       setResult(response.data);
     } catch (err) {
       setError(err.response?.data?.error || 'Xử lý điểm danh thất bại. Vui lòng kiểm tra lại ảnh.');

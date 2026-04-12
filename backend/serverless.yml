@@ -12,16 +12,35 @@ provider:
     AWS_S3_REGION: ${env:AWS_S3_REGION}
     AWS_S3_BUCKET_NAME: ${env:AWS_S3_BUCKET_NAME}
     REKOGNITION_COLLECTION_ID: ${env:REKOGNITION_COLLECTION_ID}
-    # Do not put AWS_ACCESS_KEY_ID in lambda env vars if you use IAM roles
-    # But since this is a local project, we pass it down for simplicity
-    AWS_ACCESS_KEY_ID: ${env:AWS_ACCESS_KEY_ID}
-    AWS_SECRET_ACCESS_KEY: ${env:AWS_SECRET_ACCESS_KEY}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:*
+            - rekognition:*
+          Resource: "*"
 
 plugins:
+  - serverless-esbuild
   - serverless-apigw-binary
   - serverless-offline
 
 custom:
+  esbuild:
+    bundle: true
+    minify: false
+    exclude:
+      - aws-sdk
+    external:
+      - sharp
+      - mongoose
+      - express
+      - multer
+      - cors
+    packagerOptions:
+      scripts:
+        - npm install --force --os=linux --cpu=x64 sharp
   serverless-offline:
     httpPort: 5000
     noPrependStageInUrl: true

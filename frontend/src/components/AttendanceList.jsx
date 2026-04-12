@@ -13,7 +13,7 @@ const AttendanceList = () => {
 
   const fetchLogs = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/attendance/logs');
+      const response = await axios.get('https://ea8bjyxjw8.execute-api.us-east-1.amazonaws.com/dev/api/attendance/logs');
       setLogs(response.data);
     } catch (err) {
       setError('Tải lịch sử điểm danh thất bại.');

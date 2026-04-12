@@ -14,7 +14,7 @@ const ManageStudents = () => {
 
   const fetchStudents = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/students');
+      const response = await axios.get('https://ea8bjyxjw8.execute-api.us-east-1.amazonaws.com/dev/api/students');
       setStudents(response.data);
     } catch (err) {
       setError('Tải danh sách sinh viên thất bại.');
@@ -33,7 +33,7 @@ const ManageStudents = () => {
     setSuccess('');
 
     try {
-      const response = await axios.delete(`http://localhost:5000/api/students/${id}`);
+      const response = await axios.delete(`https://ea8bjyxjw8.execute-api.us-east-1.amazonaws.com/dev/api/students/${id}`);
       setSuccess(response.data.message || 'Xoá sinh viên thành công!');
       // Refresh list
       fetchStudents();

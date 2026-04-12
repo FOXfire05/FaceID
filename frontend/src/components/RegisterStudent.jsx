@@ -39,7 +39,7 @@ const RegisterStudent = () => {
     data.append('name', formData.name);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/students/register', data);
+      const response = await axios.post('https://ea8bjyxjw8.execute-api.us-east-1.amazonaws.com/dev/api/students/register', data);
       setMessage(response.data.message);
       setFormData({ studentId: '', name: '' });
       setFile(null);
