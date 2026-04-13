@@ -11,10 +11,8 @@ exports.takeAttendance = async (req, res) => {
     const file = req.file;
 
     if (!file || !className) {
-      return res.status(400).json({ error: 'Missing class name or group image.' });
+      return res.status(400).json({ error: 'Thiếu tên lớp hoặc ảnh tập thể.' });
     }
-
-    // 1. Detect all faces in the group photo
     const detectParams = {
       Image: { Bytes: file.buffer }
     };
@@ -23,7 +21,7 @@ exports.takeAttendance = async (req, res) => {
 
     const faceDetails = detectResult.FaceDetails;
     if (!faceDetails || faceDetails.length === 0) {
-      return res.status(400).json({ error: 'No faces detected in the group photo.' });
+      return res.status(400).json({ error: 'Không tìm thấy khuôn mặt nào trong ảnh tập thể.' });
     }
 
     const matchedStudentIds = new Set();
@@ -33,7 +31,7 @@ exports.takeAttendance = async (req, res) => {
 
     for (const face of faceDetails) {
       const box = face.BoundingBox;
-      
+
       const left = Math.floor(box.Left * imageMetadata.width);
       const top = Math.floor(box.Top * imageMetadata.height);
       let width = Math.floor(box.Width * imageMetadata.width);
@@ -42,8 +40,8 @@ exports.takeAttendance = async (req, res) => {
       const pad = Math.floor(width * 0.1);
       const cLeft = Math.max(0, left - pad);
       const cTop = Math.max(0, top - pad);
-      const cWidth = Math.min(imageMetadata.width - cLeft, width + 2*pad);
-      const cHeight = Math.min(imageMetadata.height - cTop, height + 2*pad);
+      const cWidth = Math.min(imageMetadata.width - cLeft, width + 2 * pad);
+      const cHeight = Math.min(imageMetadata.height - cTop, height + 2 * pad);
 
       const croppedBuffer = await sharp(file.buffer)
         .extract({ left: cLeft, top: cTop, width: cWidth, height: cHeight })
@@ -77,10 +75,10 @@ exports.takeAttendance = async (req, res) => {
     // 2. Upload Group Photo to S3
     let groupImageUrl = '';
     const bucketName = process.env.AWS_S3_BUCKET_NAME;
-    if (bucketName) {
+    if (bucketName && bucketName.trim() !== 'your_s3_bucket_name') {
       const fileExtension = file.originalname.split('.').pop() || 'jpg';
       const s3Key = `attendance/${className.replace(/\s+/g, '_')}_${Date.now()}.${fileExtension}`;
-      
+
       const s3Params = {
         Bucket: bucketName,
         Key: s3Key,
@@ -90,8 +88,9 @@ exports.takeAttendance = async (req, res) => {
 
       const putCommand = new PutObjectCommand(s3Params);
       await s3Client.send(putCommand);
-      
-      groupImageUrl = `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
+
+      const s3Region = process.env.AWS_S3_REGION || process.env.AWS_REGION || 'us-east-1';
+      groupImageUrl = `https://${bucketName}.s3.${s3Region}.amazonaws.com/${s3Key}`;
     }
 
     // 3. Create Attendance Record
@@ -105,7 +104,7 @@ exports.takeAttendance = async (req, res) => {
     await attendanceRecord.save();
 
     res.status(200).json({
-      message: 'Attendance recorded successfully.',
+      message: 'Điểm danh thành công.',
       attendance: attendanceRecord,
       present: presentStudents,
       unrecognizedCount: unrecognizedFacesCount,
@@ -114,7 +113,7 @@ exports.takeAttendance = async (req, res) => {
 
   } catch (error) {
     console.error('Error taking attendance:', error);
-    res.status(500).json({ error: 'Server error processing attendance.' });
+    res.status(500).json({ error: 'Lỗi máy chủ khi xử lý điểm danh.', details: error.message });
   }
 };
 
@@ -123,6 +122,6 @@ exports.getAttendanceLogs = async (req, res) => {
     const logs = await Attendance.find().populate('presentStudents', 'name studentId faceId imageUrl').sort({ date: -1 });
     res.status(200).json(logs);
   } catch (error) {
-    res.status(500).json({ error: 'Server error fetching logs.' });
+    res.status(500).json({ error: 'Lỗi máy chủ khi tải lịch sử điểm danh.' });
   }
 };

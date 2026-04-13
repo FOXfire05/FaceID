@@ -13,6 +13,11 @@ const studentSchema = new mongoose.Schema({
   faceId: {
     type: String,
     required: true,
+    
+    
+    
+    
+    
   },
   imageUrl: {
     type: String,

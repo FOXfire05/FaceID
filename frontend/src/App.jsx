@@ -1,9 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
-import { Camera, UserPlus, FileText } from 'lucide-react';
+import { Camera, UserPlus, FileText, Users } from 'lucide-react';
 import RegisterStudent from './components/RegisterStudent';
 import TakeAttendance from './components/TakeAttendance';
 import AttendanceList from './components/AttendanceList';
+import ManageStudents from './components/ManageStudents';
 
 const Navbar = () => {
   return (
@@ -18,6 +19,9 @@ const Navbar = () => {
         </NavLink>
         <NavLink to="/attendance" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>
           <Camera size={18} /> Điểm danh
+        </NavLink>
+        <NavLink to="/manage" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>
+          <Users size={18} /> Quản lý Sinh viên
         </NavLink>
         <NavLink to="/logs" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>
           <FileText size={18} /> Lịch sử
@@ -36,6 +40,7 @@ function App() {
           <Routes>
             <Route path="/" element={<RegisterStudent />} />
             <Route path="/attendance" element={<TakeAttendance />} />
+            <Route path="/manage" element={<ManageStudents />} />
             <Route path="/logs" element={<AttendanceList />} />
           </Routes>
         </main>

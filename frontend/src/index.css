@@ -23,7 +23,7 @@ body {
   font-family: 'Outfit', sans-serif;
   background-color: var(--bg-color);
   color: var(--text-main);
-  background-image: 
+  background-image:
     radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15), transparent 25%),
     radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.15), transparent 25%);
   background-attachment: fixed;
@@ -34,13 +34,16 @@ body {
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--bg-color);
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--surface-border);
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
@@ -93,12 +96,12 @@ body {
   border-radius: 8px;
 }
 
-.nav-link:hover, .nav-link.active {
+.nav-link:hover,
+.nav-link.active {
   color: var(--text-main);
   background: rgba(255, 255, 255, 0.05);
 }
 
-/* Cards & Surface */
 .card {
   background: rgba(30, 41, 59, 0.5);
   backdrop-filter: blur(12px);
@@ -108,7 +111,6 @@ body {
   animation: slideFadeIn 0.5s ease-out forwards;
 }
 
-/* Forms */
 .form-group {
   margin-bottom: 1.5rem;
   display: flex;
@@ -181,7 +183,6 @@ body {
   object-fit: cover;
 }
 
-/* Buttons */
 .btn {
   background: var(--surface-border);
   color: var(--text-main);
@@ -220,7 +221,6 @@ body {
   transform: none;
 }
 
-/* Tables */
 .table-container {
   overflow-x: auto;
 }
@@ -230,7 +230,8 @@ table {
   border-collapse: collapse;
 }
 
-th, td {
+th,
+td {
   padding: 1rem;
   text-align: left;
   border-bottom: 1px solid var(--surface-border);
@@ -262,12 +263,12 @@ tr:hover {
   color: #fbbf24;
 }
 
-/* Animations */
 @keyframes slideFadeIn {
   from {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -277,14 +278,16 @@ tr:hover {
 .spinner {
   width: 20px;
   height: 20px;
-  border: 3px solid rgba(255,255,255,0.3);
+  border: 3px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   border-top-color: #fff;
   animation: spin 1s ease-in-out infinite;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .grid-2 {

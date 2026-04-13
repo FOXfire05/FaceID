@@ -1,6 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import axios from 'axios';
-import { UploadCloud, Users } from 'lucide-react';
+import { UploadCloud, Users, Camera, RefreshCcw, Image as ImageIcon } from 'lucide-react';
+import Webcam from 'react-webcam';
+
+// Utility to convert Base64 Data URI to a File object
+const dataURLtoFile = (dataurl, filename) => {
+  let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+      bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+  while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new File([u8arr], filename, { type: mime });
+};
 
 const TakeAttendance = () => {
   const [className, setClassName] = useState('');
@@ -9,6 +20,11 @@ const TakeAttendance = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+  
+  // Camera States
+  const [inputMode, setInputMode] = useState('upload'); // 'upload' or 'camera'
+  const [facingMode, setFacingMode] = useState('environment'); // 'user' (front) or 'environment' (back)
+  const webcamRef = useRef(null);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -16,6 +32,31 @@ const TakeAttendance = () => {
       setFile(selectedFile);
       setPreview(URL.createObjectURL(selectedFile));
     }
+  };
+
+  const capture = useCallback(() => {
+    const imageSrc = webcamRef.current.getScreenshot();
+    if (imageSrc) {
+      const capturedFile = dataURLtoFile(imageSrc, `captured_${Date.now()}.jpg`);
+      setFile(capturedFile);
+      setPreview(imageSrc);
+      setInputMode('upload'); // Switch back to upload preview mode
+    }
+  }, [webcamRef]);
+
+  const toggleCamera = () => {
+    setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
+  };
+
+  const handleRetake = () => {
+    setFile(null);
+    setPreview('');
+    setInputMode('camera');
+  };
+
+  const handleClearFile = () => {
+    setFile(null);
+    setPreview('');
   };
 
   const handleSubmit = async (e) => {
@@ -34,7 +75,7 @@ const TakeAttendance = () => {
     data.append('className', className);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/attendance/take', data);
+      const response = await axios.post('https://ea8bjyxjw8.execute-api.us-east-1.amazonaws.com/dev/api/attendance/take', data);
       setResult(response.data);
     } catch (err) {
       setError(err.response?.data?.error || 'Xử lý điểm danh thất bại. Vui lòng kiểm tra lại ảnh.');
@@ -66,22 +107,79 @@ const TakeAttendance = () => {
           </div>
           
           <div className="form-group">
-            <label>Tải ảnh tập thể</label>
-            <div className="file-drop-area" style={{ height: '300px' }}>
-              <input type="file" accept="image/*" onChange={handleFileChange} />
-              {preview ? (
-                <img src={preview} alt="Preview" className="image-preview" />
-              ) : (
-                <div className="file-message">
-                  <UploadCloud size={48} style={{ marginBottom: '1rem', color: 'var(--text-muted)' }} />
-                  <span>Tải ảnh lớp học</span>
-                  <span style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>Đảm bảo các khuôn mặt đều có thể nhìn rõ</span>
-                </div>
-              )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <label>Thêm ảnh lớp học</label>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button 
+                  type="button" 
+                  onClick={() => setInputMode('upload')}
+                  className="btn" 
+                  style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', background: inputMode === 'upload' ? 'rgba(99, 102, 241, 0.1)' : 'transparent', color: inputMode === 'upload' ? 'var(--primary-color)' : 'var(--text-muted)' }}
+                >
+                  <ImageIcon size={16} style={{marginRight: '4px'}} /> Tải ảnh
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => { setInputMode('camera'); setPreview(''); setFile(null); }}
+                  className="btn" 
+                  style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', background: inputMode === 'camera' ? 'rgba(99, 102, 241, 0.1)' : 'transparent', color: inputMode === 'camera' ? 'var(--primary-color)' : 'var(--text-muted)' }}
+                >
+                  <Camera size={16} style={{marginRight: '4px'}} /> Camera trực tiếp
+                </button>
+              </div>
             </div>
+
+            {inputMode === 'camera' ? (
+              <div className="file-drop-area" style={{ height: 'auto', minHeight: '300px', flexDirection: 'column', gap: '1rem', padding: '1rem' }}>
+                <div style={{ position: 'relative', width: '100%', borderRadius: '8px', overflow: 'hidden' }}>
+                  <Webcam
+                    audio={false}
+                    ref={webcamRef}
+                    screenshotFormat="image/jpeg"
+                    videoConstraints={{ facingMode }}
+                    style={{ width: '100%', borderRadius: '8px' }}
+                  />
+                  <button 
+                    type="button" 
+                    onClick={toggleCamera} 
+                    style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', padding: '8px', cursor: 'pointer' }}
+                    title="Đảo Camera"
+                  >
+                    <RefreshCcw size={20} />
+                  </button>
+                </div>
+                <button type="button" onClick={capture} className="btn btn-primary" style={{ width: '100%' }}>
+                  📸 Chụp ngay
+                </button>
+              </div>
+            ) : (
+              <div className="file-drop-area" style={{ height: 'min-content', minHeight: '300px', position: 'relative' }}>
+                {!preview && <input type="file" accept="image/*" onChange={handleFileChange} />}
+                
+                {preview ? (
+                  <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <img src={preview} alt="Preview" className="image-preview" style={{ maxHeight: '250px', objectFit: 'contain' }} />
+                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                      <button type="button" onClick={handleClearFile} className="btn" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)' }}>
+                        Huỷ ảnh tải lên
+                      </button>
+                      <button type="button" onClick={handleRetake} className="btn" style={{ background: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary-color)' }}>
+                        <Camera size={16} style={{marginRight: '4px'}} /> Chụp lại
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="file-message">
+                    <UploadCloud size={48} style={{ marginBottom: '1rem', color: 'var(--text-muted)' }} />
+                    <span>Kéo thả hoặc bấm để Tải ảnh lớp học</span>
+                    <span style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>Đảm bảo các khuôn mặt đều có thể nhìn rõ</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: '100%' }}>
+          <button type="submit" className="btn btn-primary" disabled={loading || !file} style={{ width: '100%' }}>
             {loading ? <div className="spinner"></div> : 'Bắt đầu điểm danh'}
           </button>
         </form>
